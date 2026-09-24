@@ -32,7 +32,22 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ./run.sh
 ```
 
-健康检查：`curl http://127.0.0.1:8000/api/health`
+健康检查：`curl http://127.0.0.1:8000/api/health`，返回运行环境、模块数量与
+示例数据状态，与启动日志里的自检结果一致。
+
+启动时会读取运行环境并校验必要配置，配置非法直接启动失败。可用环境变量：
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `APP_ENV` | `local` | 运行环境，可选 `local/dev/test/staging/prod` |
+| `APP_PORT` | `8000` | 服务端口，`run.sh` 与容器启动命令都会读取 |
+| `APP_ALLOWED_ORIGINS` | 本地 5173 两个来源 | 允许的跨域来源，逗号分隔 |
+
+示例数据被改脏后可以一键重置（`prod` 环境会拒绝）：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/seed/reset
+```
 
 ### 前端
 
