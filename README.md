@@ -34,6 +34,31 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 健康检查：`curl http://127.0.0.1:8000/api/health`
 
+启动流程统一在 `app/bootstrap.py`：启动时读取运行环境与必要配置（非法配置
+启动即失败），随后装载示例数据并执行自检，自检摘要同时打到启动日志。健康检查
+与启动日志共用同一套自检口径，返回运行环境、模块数量与示例数据状态：
+
+```json
+{"ok": true, "env": "local", "modules": 21,
+ "seed": {"state": "pristine", "modules": 21, "rows": 63, "seed_rows": 63}}
+```
+
+示例数据被改脏（新增、修改、清空）后，`seed.state` 会变成 `dirty` / `empty`，
+调用重置入口即可恢复，重置后会按启动流程再做一次自检：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/seed/reset
+```
+
+可用环境变量（默认值对应本地开发，不设任何变量时流程与原来一致）：
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `APP_ENV` | `local` | 运行环境，可选 `local`、`dev`、`staging`、`prod` |
+| `APP_PORT` | `8000` | 服务端口，需在 1-65535 内 |
+| `APP_NAME` | 冷链物流温控运营平台 | 应用名称，不能为空 |
+| `APP_ALLOWED_ORIGINS` | 本地两个 5173 来源 | CORS 来源，逗号分隔，必须是 http(s) 地址 |
+
 ### 前端
 
 ```bash
